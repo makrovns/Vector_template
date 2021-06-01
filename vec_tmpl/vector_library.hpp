@@ -47,7 +47,7 @@ namespace mvec {
             return *this;
         }
 
-        _Vector_iterator& operator++(int) noexcept
+        _Vector_iterator operator++(int) noexcept
         {
             _Vector_iterator tmp = *this;
             ++* this;
@@ -60,7 +60,7 @@ namespace mvec {
             return *this;
         }
 
-        _Vector_iterator& operator--(int) noexcept
+        _Vector_iterator operator--(int) noexcept
         {
             _Vector_iterator tmp = *this;
             --* this;
@@ -157,6 +157,7 @@ namespace mvec {
         void insert(iterator _Place, const T& value);
         void insert(iterator _Place, T&& value);
         void push_front(T&& value);
+        void push_front(const T& value);
 
         T& operator[](size_t index);
         const T& operator[](size_t index) const;
@@ -389,7 +390,7 @@ namespace mvec {
             auto _new_Place = rbegin() + _dist;
             ++_size;
 
-            std::move(rbegin() + 1, _new_Place, rbegin());
+            std::move(std::next(rbegin()), _new_Place, rbegin());
 
             *(_new_Place.base()) = value;
         }
@@ -409,7 +410,7 @@ namespace mvec {
             auto _new_Place = rbegin() + _dist;
             ++_size;
 
-            std::move(rbegin() + 1, _new_Place, rbegin());
+            std::move(std::next(rbegin()), _new_Place, rbegin());
 
             *(_new_Place.base()) = std::move(value);
         }
@@ -419,12 +420,24 @@ namespace mvec {
     }
 
     template<typename T>
+    void vector<T>::push_front(const T& value)
+    {
+        ExpandifNeed();
+        ++_size;
+
+        std::move(std::next(rbegin()), rend(), rbegin());
+
+        *begin() = std::move(value);
+
+    }
+    
+    template<typename T>
     void vector<T>::push_front(T&& value)
     {
         ExpandifNeed();
         ++_size;
 
-        std::move(rbegin() + 1, rend(), rbegin());
+        std::move(std::next(rbegin()), rend(), rbegin());
 
         *begin() = std::move(value);
 
@@ -445,13 +458,13 @@ namespace mvec {
     template<typename T>
     T& vector<T>::back()
     {
-        return *(end() - 1);
+        return *std::prev(end());
     }
 
     template<typename T>
     const T& vector<T>::back() const
     {
-        return *(end() - 1);
+        return *std::prev(end());
     }
 
     template<typename T>
@@ -480,6 +493,21 @@ namespace mvec {
             _data = new_data;
             _capacity = new_capacity;
         }
+    }
+
+    template<typename T>
+    bool operator==(const vector<T>& lhs,const vector<T>& rhs )
+    {
+        if(lhs.size() == rhs.size())
+            return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+
+        return false;        
+    }
+
+    template<typename T>
+    bool operator!=(const vector<T>& lhs,const vector<T>& rhs )
+    {
+        return !(lhs == rhs);        
     }
 
 }
